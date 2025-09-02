@@ -112,7 +112,11 @@ const AuthForm = ({ userType = 'customer' }) => {
         console.log('Registering with:', {
           name: formData.name,
           mobile: formData.mobile,
+<<<<<<< HEAD
           email: formData.email || null, // Ensure email is included
+=======
+          email: formData.email || null,
+>>>>>>> fe9c732f928ed7b5402403946b3fd6e8082477f2
           address: `${formData.address}, ${formData.city}, ${formData.pincode}`,
           password: formData.password
         });
