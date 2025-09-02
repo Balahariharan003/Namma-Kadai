@@ -6,10 +6,7 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
     return farmer || {
       name: 'Ravi Kumar',
       mobile: '9876543210',
-<<<<<<< HEAD
       email: '', 
-=======
->>>>>>> fe9c732f928ed7b5402403946b3fd6e8082477f2
       address: '123 Green Farm Road',
       city: 'Coimbatore',
       state: 'Tamil Nadu',
@@ -110,7 +107,6 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
                     onChange={handleInputChange}
                   />
                 </div>
-<<<<<<< HEAD
                 {/* Add email field in edit mode */}
                 <div className="form-group">
                   <label>Email (Optional)</label>
@@ -122,8 +118,6 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
                     placeholder="example@email.com"
                   />
                 </div>
-=======
->>>>>>> fe9c732f928ed7b5402403946b3fd6e8082477f2
                 <div className="form-group">
                   <label>Address</label>
                   <textarea
@@ -159,7 +153,6 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
                   <span className="info-icon">📞</span>
                   <span className="info-text">{profileData.mobile}</span>
                 </div>
-<<<<<<< HEAD
                 {/* Conditionally render email if it exists */}
                 {profileData.email && (
                   <div className="info-item">
@@ -167,8 +160,6 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
                     <span className="info-text">{profileData.email}</span>
                   </div>
                 )}
-=======
->>>>>>> fe9c732f928ed7b5402403946b3fd6e8082477f2
                 <div className="info-item">
                   <span className="info-icon">📍</span>
                   <span className="info-text">{profileData.address}</span>
@@ -190,8 +181,4 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
   );
 };
 
-<<<<<<< HEAD
 export default FarmerProfile;
-=======
-export default FarmerProfile;
->>>>>>> fe9c732f928ed7b5402403946b3fd6e8082477f2
