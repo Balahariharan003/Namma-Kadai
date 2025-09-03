@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Profession from './Frontend/Profession';
-import CustomerAuth from './Frontend/CustomerAuth';
-import FarmerAuth from './Frontend/FarmerAuth';
+import CustomerAuthform from './Frontend/CustomerAuthform';
+import FarmerAuthform from './Frontend/FarmerAuthform';
 import FarmerDash from './Frontend/FarmerDash';
 import CustomerHome from './Frontend/CustomerHome';
 import ProductDetail from './Frontend/ProductDetail';
@@ -15,11 +15,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Profession />} />
-        <Route path="/customer/login" element={<CustomerAuth />} />
-        <Route path="/farmer/login" element={<FarmerAuth/>} />
+        <Route path="/customer/login" element={<CustomerAuthform />} />
+        <Route path="/farmer/login" element={<FarmerAuthform />} />
         <Route path="/farmer/dashboard" element={<FarmerDash />} />
-        <Route path="/customer/dashboard" element={<CustomerHome/>}/>
-        <Route path="/product/:id" element={<ProductDetail/>} />
+        <Route path="/customer/dashboard" element={<CustomerHome />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/profile" element={<Profile />} />

@@ -7,16 +7,6 @@
   padding: 0;
 }
 
-/* Farmer Cursor 👨‍🌾 */
-.auth-page.farmer-auth {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><text y='18' font-size='18'>👨‍🌾</text></svg>") 16 16, auto;
-}
-.auth-page.farmer-auth input,
-.auth-page.farmer-auth textarea,
-.auth-page.farmer-auth button {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><text y='18' font-size='18'>👨‍🌾</text></svg>") 16 16, auto;
-}
-
 /* Customer Cursor 👨‍💼 */
 .auth-page.customer-auth {
   cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><text y='18' font-size='18'>👨‍💼</text></svg>") 16 16, auto;
@@ -141,14 +131,14 @@
   padding: 0.25rem;
 }
 
-.submit-btn {
+.submit-btn-customer {
   width: 100%;
   padding: 1.1rem;
   font-size: 1.1rem;
   font-weight: 600;
   border-radius: 10px;
   border: none;
-  background-color: #3182ce;
+  background-color: #4299e1;
   color: white;
   cursor: pointer;
   display: flex;
@@ -158,11 +148,11 @@
   transition: background-color 0.2s ease;
 }
 
-.submit-btn:hover{
-  background-color: green;
+.submit-btn-customer:hover:not(:disabled) {
+  background-color: #3182ce;
 }
 
-.submit-btn:disabled {
+.submit-btn-customer:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -189,7 +179,7 @@
   color: #718096;
 }
 
-.toggle-form-btn {
+.toggle-form-btn-customer {
   background: none;
   border: none;
   color: #4299e1;
@@ -199,7 +189,7 @@
   margin-left: 0.25rem;
 }
 
-.toggle-form-btn:hover {
+.toggle-form-btn-customer:hover {
   text-decoration: underline;
 }
 
@@ -232,38 +222,6 @@
 .form-group.error textarea {
   border-color: #fc8181;
   background-color: #fff5f5;
-}
-
-/* Farmer Theme Overrides */
-.auth-page.farmer-auth .submit-btn {
-  background-color: #38a169;
-}
-.auth-page.farmer-auth .submit-btn:hover {
-  background-color: #2f855a;
-}
-.auth-page.farmer-auth .toggle-form-btn {
-  color: #38a169;
-}
-.auth-page.farmer-auth input:focus,
-.auth-page.farmer-auth textarea:focus {
-  border-color: #38a169;
-  box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.15);
-}
-
-/* Customer Theme Overrides */
-.auth-page.customer-auth .submit-btn {
-  background-color: #4299e1;
-}
-.auth-page.customer-auth .submit-btn:hover:not(:disabled) {
-  background-color: #3182ce;
-}
-.auth-page.customer-auth .toggle-form-btn {
-  color: #4299e1;
-}
-.auth-page.customer-auth input:focus,
-.auth-page.customer-auth textarea:focus {
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
 }
 
 /* Accessibility focus */

@@ -1,19 +1,26 @@
-import express from "express"
-import mongoose from "mongoose"
-import dotenv from "dotenv"
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import farmerAuthRoutes from "./routes/auth.js";
+import path from "path";
+import cors from "cors";
 
-const app=express();
 dotenv.config();
+const app = express();
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+app.use(express.json()); // parse JSON bodies
 
-const PORT=process.env.PORT || 7000;
-const MONGOURL=process.env.MONGO_URL;  
+// routes
+app.use("/", farmerAuthRoutes);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 mongoose
-.connect(MONGOURL)
-.then(()=>{
-    console.log("Database connected");
-    app.listen(PORT,() => {
-        console.log(`Server is running on port ${PORT}`);
-    });
-})
-.catch((error) => console.log(error));
+  .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("MongoDB connected");
+    app.listen(8000, () => console.log("Server running on http://localhost:8000"));
+  })
+  .catch((err) => console.error("MongoDB error:", err));
