@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import './css/AddProduct.css';
 
-const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
+const AddProduct = ({ productToEdit, onCancel, isEditMode }) => {
   const [productData, setProductData] = useState({
     name: '',
     price: '',
     inStock: '',
-    preview: ''
+    preview: '',
+    file: null, // actual file for upload
+
+    
   });
   const [showForm, setShowForm] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const API_BASE_URL = 'http://localhost:8000/api/products';
 
   useEffect(() => {
     if (productToEdit) {
@@ -16,7 +24,8 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
         name: productToEdit.name,
         price: productToEdit.price,
         inStock: productToEdit.inStock,
-        preview: productToEdit.preview || ''
+        preview: productToEdit.imageUrl || '',
+        file: null,
       });
       setShowForm(true);
     } else {
@@ -24,18 +33,15 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
         name: '',
         price: '',
         inStock: '',
-        preview: ''
+        preview: '',
+        file: null,
       });
-      // Don't reset showForm here to maintain state between renders
     }
   }, [productToEdit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProductData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setProductData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
@@ -45,51 +51,77 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
       reader.onloadend = () => {
         setProductData(prev => ({
           ...prev,
-          preview: reader.result
+          preview: reader.result,
+          file: file
         }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    if (!productData.name) newErrors.name = 'Product name is required';
+    if (!productData.price) newErrors.price = 'Price is required';
+    if (!productData.inStock) newErrors.inStock = 'Quantity is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAddProduct(productData);
-    if (!isEditMode) {
-      // Reset form after submission only for add mode
-      setProductData({
-        name: '',
-        price: '',
-        inStock: '',
-        preview: ''
+    if (!validateForm()) return;    
+
+    setIsSubmitting(true);
+    setErrors({});
+    setSuccessMessage('');
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('productName', productData.name);
+      formDataToSend.append('rate', productData.price);
+      formDataToSend.append('kg', productData.inStock);
+      if (productData.file) formDataToSend.append('photo', productData.file);
+
+      const response = await fetch(`${API_BASE_URL}/add`, {
+        method: 'POST',
+        body: formDataToSend,
       });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to add product');
+
+      setSuccessMessage('✅ Product added successfully!');
+      setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
       setShowForm(false);
+    } catch (err) {
+      console.error('Error adding product:', err);
+      setErrors({ api: err.message });
+    } finally {
+      setIsSubmitting(false);
     }
+    
   };
 
   const handleCancel = () => {
     if (isEditMode) {
-      onCancel(); // For edit mode, use the passed cancel handler
+      onCancel?.();
     } else {
-      // For add mode, just hide the form
       setShowForm(false);
-      setProductData({
-        name: '',
-        price: '',
-        inStock: '',
-        preview: ''
-      });
+      setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
     }
   };
 
-  // If in edit mode or form should be shown, display the form
   if (isEditMode || showForm) {
     return (
       <div className={`add-product-container ${isEditMode ? 'edit-mode' : ''}`}>
         <div className="add-product-form-container">
           <form className="add-product-form" onSubmit={handleSubmit}>
             <h2>{isEditMode ? 'Edit Product' : 'Add New Product'}</h2>
-            
+
+            {errors.api && <div className="alert alert-error">{errors.api}</div>}
+            {successMessage && <div className="alert alert-success">{successMessage}</div>}
+
             <div className="form-group">
               <label htmlFor="name">Product Name</label>
               <input
@@ -100,8 +132,9 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
                 onChange={handleInputChange}
                 required
               />
+              {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="price">Price (₹/kg)</label>
               <input
@@ -113,8 +146,9 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
                 required
                 min="1"
               />
+              {errors.price && <span className="error-message">{errors.price}</span>}
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="inStock">Quantity Available (kg)</label>
               <input
@@ -126,13 +160,14 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
                 required
                 min="1"
               />
+              {errors.inStock && <span className="error-message">{errors.inStock}</span>}
             </div>
-            
+
             <div className="form-group">
-              <label htmlFor="image">Product Image</label>
+              <label htmlFor="photo">Product Image</label>
               <input
                 type="file"
-                id="image"
+                id="photo"
                 accept="image/*"
                 onChange={handleImageChange}
               />
@@ -142,17 +177,13 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="form-actions">
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={handleCancel}
-              >
+              <button type="button" className="cancel-btn" onClick={handleCancel}>
                 Cancel
               </button>
-              <button type="submit" className="submit-btn">
-                {isEditMode ? 'Update Product' : 'Add Product'}
+              <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Product' : 'Add Product')}
               </button>
             </div>
           </form>
@@ -161,13 +192,9 @@ const AddProduct = ({ onAddProduct, productToEdit, onCancel, isEditMode }) => {
     );
   }
 
-  // Show the plus symbol placeholder when not in edit mode and form is hidden
   return (
     <div className="add-product-container-plus">
-      <div 
-        className="add-product-placeholder"
-        onClick={() => setShowForm(true)}
-      >
+      <div className="add-product-placeholder" onClick={() => setShowForm(true)}>
         <div className="plus-symbol">+</div>
         <p>Click to add a new product</p>
       </div>

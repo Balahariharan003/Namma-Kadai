@@ -9,6 +9,7 @@ import ProductDetail from './Frontend/ProductDetail';
 import Cart from './Frontend/Cart';
 import Checkout from './Frontend/Checkout';
 import Profile from './Frontend/CustomerProfile';
+import Overview from './Frontend/Overview';
 
 function App() {
   return (
