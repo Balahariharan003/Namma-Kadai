@@ -43,6 +43,13 @@ const FarmerDash = () => {
   };
 
   useEffect(() => {
+    const fetchProducts = async () => {
+    const farmerId = localStorage.getItem("farmerId");  // 👈 get current farmer
+    const response = await fetch(`${API_BASE_URL}/${farmerId}`);
+    const data = await response.json();
+    setProducts(data);
+  };
+  
     fetchProducts();
   }, []);
 

@@ -2,9 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import farmerAuthRoutes from "./routes/auth.js";
+import customerAuthRoutes from "./routes/customerAuth.js";
 import productRoutes from "./routes/productRoutes.js";
 import productOverviewRoutes from "./routes/productOverviewRoutes.js"; // ✅ new import
-import farmerProfileRoutes from "./routes/farmerProfileRoutes.js"
+import farmerProfileRoutes from "./routes/farmerProfileRoutes.js";
+import customerProfileRoutes from "./routes/customerProfileRoutes.js";
 import path from "path";
 import cors from "cors";
 
@@ -29,7 +31,9 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/", farmerAuthRoutes);
+app.use("/api/auth", customerAuthRoutes);
 app.use("/api/farmers/profile", farmerProfileRoutes);
+app.use("/api/customers/profile", customerProfileRoutes);
 app.use("/api/products", productRoutes);           // add/update/delete
 app.use("/api/products", productOverviewRoutes);   // overview only (GET /overview)
 

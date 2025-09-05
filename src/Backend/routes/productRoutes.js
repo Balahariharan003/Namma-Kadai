@@ -20,13 +20,14 @@ const upload = multer({ storage });
 // POST /api/products/add → Add a new product
 router.post("/add", upload.single("photo"), async (req, res) => {
   try {
-    const { productName, rate, kg } = req.body;
+    const { productName, rate, kg, farmerId } = req.body;
 
     const product = new Product({
       name: productName,
       price: rate,
       inStock: kg,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : ""
+      imageUrl: req.file ? `/uploads/${req.file.filename}` : "",
+      farmer: farmerId, // 👈 attach product to farmer
     });
 
     await product.save();
@@ -37,11 +38,10 @@ router.post("/add", upload.single("photo"), async (req, res) => {
   }
 });
 
-
-// GET /api/products → Get all products
+// GET /api/products → Get all products (for admin or global view)
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find(); // ✅ fixed (removed "farmer" bug)
     res.json(products);
   } catch (err) {
     console.error("❌ Error fetching products:", err);
@@ -49,15 +49,26 @@ router.get("/", async (req, res) => {
   }
 });
 
-// server/routes/productRoutes.js
+// GET /api/products/:farmerId → Get products by farmer
+router.get("/:farmerId", async (req, res) => {
+  try {
+    const products = await Product.find({ farmer: req.params.farmerId });
+    res.json(products);
+  } catch (err) {
+    console.error("❌ Error fetching products:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/products/delete/:id → Delete product
 router.delete("/delete/:id", async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct) return res.status(404).json({ error: "Product not found" });
 
-    res.status(204).send(); // <-- This returns 204
+    res.status(204).send();
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error deleting product:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -70,10 +81,9 @@ router.put("/update/:id", upload.single("photo"), async (req, res) => {
     const updatedData = {
       name: productName,
       price: rate,
-      inStock: kg
+      inStock: kg,
     };
 
-    // If a new image is uploaded, update the imageUrl
     if (req.file) {
       updatedData.imageUrl = `/uploads/${req.file.filename}`;
     }
@@ -81,7 +91,7 @@ router.put("/update/:id", upload.single("photo"), async (req, res) => {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updatedData,
-      { new: true } // return the updated document
+      { new: true }
     );
 
     if (!updatedProduct) return res.status(404).json({ error: "Product not found" });

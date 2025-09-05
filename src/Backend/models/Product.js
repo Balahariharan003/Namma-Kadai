@@ -17,6 +17,12 @@ const productSchema = new mongoose.Schema(
     imageUrl: {
       type: String, // path of uploaded image
       default: ""
+    },
+    // 👇 New field
+    farmer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Farmer",
+      required: true,
     }
   },
   { timestamps: true }

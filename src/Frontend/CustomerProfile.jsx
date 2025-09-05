@@ -8,66 +8,108 @@ import {
   FaSignOutAlt,
   FaCamera
 } from "react-icons/fa";
-import Cart from "./Cart"; // Import the Cart component
+import Cart from "./Cart"; // Import Cart component
 import "./css/Customer.css";
 
 const CustomerProfile = () => {
   const [activeTab, setActiveTab] = useState("personalInfo");
   const [isEditing, setIsEditing] = useState(false);
-  const [profileImage, setProfileImage] = useState("https://via.placeholder.com/150");
+  const [profileImage, setProfileImage] = useState("/default-avatar.png");
+  const [imageFile, setImageFile] = useState(null);
 
   const [profileData, setProfileData] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
-    phone: "",
+    name: "",
+    email: "",
+    mobile: "",
     address: "",
     city: "",
-    zip: ""
+    state: "",
+    pincode: ""
   });
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    const savedData = localStorage.getItem("customerProfile");
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setProfileData(parsedData);
-      if (parsedData.profileImage) {
-        setProfileImage(parsedData.profileImage);
-      }
-    }
-  }, []);
+  // Fetch profile from backend on mount
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const mobile = user?.mobile;   // 👈 safer
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData(prev => ({ ...prev, [name]: value }));
+  if (!mobile) return;
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/customers/profile/${mobile}`);
+      const data = await res.json();
+      if (data) {
+        setProfileData(data);
+        if (data.profilePhoto) {
+          setProfileImage(data.profilePhoto);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+    }
   };
 
+  fetchProfile();
+}, []);
+
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle profile image change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    setImageFile(file);
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result);
-      };
+      reader.onloadend = () => setProfileImage(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = (e) => {
+  // Save profile updates
+  const handleSave = async (e) => {
     e.preventDefault();
-    const dataToSave = {
-      ...profileData,
-      profileImage: profileImage
-    };
-    localStorage.setItem("customerProfile", JSON.stringify(dataToSave));
-    setIsEditing(false);
+    const mobile = profileData.mobile;
+    if (!mobile) {
+      alert("Customer mobile not found!");
+      return;
+    }
+
+    const formData = new FormData();
+    Object.keys(profileData).forEach((key) => {
+      if (key !== "profilePhoto") formData.append(key, profileData[key]);
+    });
+    if (imageFile) formData.append("profilePhoto", imageFile);
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/customers/profile/${mobile}`, {
+        method: "PUT",
+        body: formData,
+      });
+      const data = await res.json();
+      setProfileData(data);
+      if (data.profilePhoto) {
+        setProfileImage(data.profilePhoto);
+      }
+      setIsEditing(false);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
   };
 
-  const handleLogout = () => {
-    // Redirect to login page
-    window.location.href = "/customer/login";
-  };
+const handleLogout = () => {
+  localStorage.removeItem("user");
+  localStorage.removeItem("customerMobile"); // if you use option 1
+  window.location.href = "/customer/login";
+};
 
+
+  // Render different tabs
   const renderContent = () => {
     if (activeTab === "personalInfo") {
       return (
@@ -86,67 +128,26 @@ const CustomerProfile = () => {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      style={{ display: 'none' }}
+                      style={{ display: "none" }}
                     />
                   </label>
                 </div>
               </div>
-              <div className="form-group">
-                <label>Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={profileData.fullName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={profileData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={profileData.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Address</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={profileData.address}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>City</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={profileData.city}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Zip Code</label>
-                <input
-                  type="text"
-                  name="zip"
-                  value={profileData.zip}
-                  onChange={handleInputChange}
-                />
-              </div>
+
+              {["name", "email", "mobile", "address", "city", "state", "pincode"].map((field) => (
+                <div className="form-group" key={field}>
+                  <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                  <input
+                    type="text"
+                    name={field}
+                    value={profileData[field] || ""}
+                    onChange={handleInputChange}
+                    disabled={field === "mobile"} // mobile shouldn't be editable
+                    required={["name", "email", "address", "city", "state", "pincode"].includes(field)}
+                  />
+                </div>
+              ))}
+
               <div className="form-actions">
                 <button type="submit" className="save-btn-customer">Save Changes</button>
                 <button
@@ -164,35 +165,14 @@ const CustomerProfile = () => {
                 <img src={profileImage} alt="Profile" />
               </div>
               <div className="info-display">
-                <div className="info-item">
-                  <span className="info-label">Full Name:</span>
-                  <span className="info-value">{profileData.fullName}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Email:</span>
-                  <span className="info-value">{profileData.email}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Phone:</span>
-                  <span className="info-value">{profileData.phone || "Not provided"}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Address:</span>
-                  <span className="info-value">{profileData.address || "Not provided"}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">City:</span>
-                  <span className="info-value">{profileData.city || "Not provided"}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Zip Code:</span>
-                  <span className="info-value">{profileData.zip || "Not provided"}</span>
-                </div>
+                {["name", "email", "mobile", "address", "city", "state", "pincode"].map((field) => (
+                  <div className="info-item" key={field}>
+                    <span className="info-label">{field.charAt(0).toUpperCase() + field.slice(1)}:</span>
+                    <span className="info-value">{profileData[field] || "Not provided"}</span>
+                  </div>
+                ))}
               </div>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="edit-btn-customer"
-              >
+              <button onClick={() => setIsEditing(true)} className="edit-btn-customer">
                 <FaUserEdit /> Edit Profile
               </button>
             </>
@@ -202,7 +182,7 @@ const CustomerProfile = () => {
     }
 
     if (activeTab === "myCart") {
-      return <Cart />; // Render the Cart component
+      return <Cart />;
     }
 
     if (activeTab === "myOrders") {
@@ -231,7 +211,7 @@ const CustomerProfile = () => {
           <div className="profile-photo">
             <img src={profileImage} alt="Profile" />
           </div>
-          <h1>Hello, {profileData.fullName.split(" ")[0]}!</h1>
+          <h1>Hello, {profileData.name ? profileData.name.split(" ")[0] : "Customer"}!</h1>
         </div>
       </div>
 
@@ -268,9 +248,7 @@ const CustomerProfile = () => {
           </nav>
         </aside>
 
-        <main className="content">
-          {renderContent()}
-        </main>
+        <main className="content">{renderContent()}</main>
       </div>
     </div>
   );

@@ -142,7 +142,9 @@ const FarmerAuthform = () => {
 
          // ✅ Save logged-in farmer’s mobile to localStorage
         localStorage.setItem("farmerMobile", data.farmer.mobile);
-        
+        // Example in handleSubmit -> login/signup success
+        localStorage.setItem("farmerId", data.farmer._id); 
+
         console.log("✅ Signup successful:", data);
         setSuccessMessage("Login successful!");
         setTimeout(() => {

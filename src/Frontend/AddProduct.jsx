@@ -60,6 +60,11 @@ const handleSubmit = async (e) => {
     formDataToSend.append('kg', productData.inStock);
     if (productData.file) formDataToSend.append('photo', productData.file);
 
+    
+     // 👇 ADD THIS
+    const farmerId = localStorage.getItem("farmerId");
+    formDataToSend.append("farmerId", farmerId);
+    
     const response = await fetch(`${API_BASE_URL}/add`, {   // ✅ FIXED
       method: 'POST',
       body: formDataToSend,
