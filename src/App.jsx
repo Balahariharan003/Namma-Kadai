@@ -10,6 +10,7 @@ import Cart from './Frontend/Cart';
 import Checkout from './Frontend/Checkout';
 import Profile from './Frontend/CustomerProfile';
 import Overview from './Frontend/Overview';
+import FarmerProfile from './Frontend/Farmerprof';
 
 function App() {
   return (

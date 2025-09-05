@@ -1,4 +1,4 @@
-
+/* Farmer Dashboard Layout */
 .farmer-dashboard {
   display: flex;
   flex-direction: column;
@@ -24,10 +24,10 @@
   font-weight: 700;
   color: #fff;
 }
-
-.brand-logo span{
+.brand-logo span {
   color: #4dc551;
 }
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -43,7 +43,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
 .logout-btn:hover {
   background-color:#f8f9fa;
   color :#27ae60;
@@ -61,6 +60,7 @@
   background-color: #34495e;
   color: white;
   padding: 1.5rem 0;
+  flex-shrink: 0; /* Sidebar never shrinks */
 }
 
 .dashboard-sidebar ul {
@@ -68,7 +68,6 @@
   padding: 0;
   margin: 0;
 }
-
 .dashboard-sidebar li {
   padding: 0.8rem 1.5rem;
   cursor: pointer;
@@ -77,11 +76,9 @@
   align-items: center;
   gap: 0.8rem;
 }
-
 .dashboard-sidebar li:hover {
   background-color: #2c3e50;
 }
-
 .dashboard-sidebar li.active {
   background-color: #27ae60;
   border-left: 4px solid #fff;
@@ -90,17 +87,20 @@
 /* Content Area */
 .dashboard-content {
   flex: 1;
-  padding: 2rem;
+  padding: 20px;            /* 🔹 Unified spacing */
   background-color: #fff;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+  min-height: 100vh;        /* Always fills */
+  box-sizing: border-box;   /* Include padding in width */
+  overflow-x: hidden;       /* Prevents shifting */
 }
 
 /* Tab Content Styles */
 .tab-content {
   background: white;
   border-radius: 8px;
-  padding: 2rem;
+  padding: 20px;            /* Inner spacing */
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Responsive Design */
@@ -108,30 +108,25 @@
   .dashboard-container {
     flex-direction: column;
   }
-
   .dashboard-sidebar {
     width: 100%;
     padding: 0;
   }
-
   .dashboard-sidebar ul {
     display: flex;
     overflow-x: auto;
   }
-
   .dashboard-sidebar li {
     padding: 1rem;
     white-space: nowrap;
     border-bottom: 3px solid transparent;
   }
-
   .dashboard-sidebar li.active {
     border-left: none;
     border-bottom: 3px solid #fff;
   }
-
   .dashboard-content {
-    padding: 1rem;
+    padding: 15px;
   }
 }
 
@@ -139,10 +134,6 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease-out;
 }
 
 /* Notification Badge */
@@ -161,127 +152,9 @@
   font-size: 0.7rem;
   font-weight: bold;
 }
-/* Overview Styles */
-.overview-container {
-  padding: 20px;
-}
-
-.overview-container h2 {
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.no-products {
-  text-align: center;
-  color: #666;
-  font-size: 18px;
-  margin-top: 50px;
-}
-
-.products-grid-overview{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.product-card-overview{
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-  height: 400px; /* Fixed height for the card */
-  display: flex;
-  flex-direction: column;
-}
-
-.product-card-overview:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.product-image-overview{
-  height: 200px;
-  overflow: hidden;
-}
-
-.product-image-overview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-details-overview {
-  padding: 15px;
-}
-
-.product-details-overview h3 {
-  margin: 0 0 10px 0;
-  color: #333;
-}
-
-.product-details-overview p {
-  margin: 5px 0;
-  color: #666;
-}
-/* Add to your existing Farmerdash.css */
-.product-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.edit-btn-overview, .delete-btn-overview{
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.delete-btn-overview{
-  background-color: #f44336;
-  color: white;
-}
-
-.delete-btn-overview:hover {
-  background-color: #d32f2f;
-}
-
-.product-card-overview{
-  position: relative;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.2s;
-}
-
-.product-card-overview:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-.edit-form-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 70vh;
-  position: relative;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  backdrop-filter: blur(5px);
-  z-index: 1000;
-}
-
-
-
-/*farmer prof .css*/
 
 /* FarmerProfile.css */
-
+/* ================= Farmer Profile Specific ================= */
 .farmer-profile-container {
   max-width: 800px;
   margin: 2rem auto;
@@ -290,8 +163,8 @@
 
 .farmer-profile-card {
   background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -300,13 +173,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background:#27ae60; /* Green header */
+  background: #27ae60; /* Green header */
   color: white;
 }
 
 .profile-header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 .profile-content {
@@ -315,6 +188,7 @@
   gap: 2rem;
 }
 
+/* Image Section */
 .profile-image-section {
   flex: 1;
   display: flex;
@@ -323,135 +197,134 @@
 }
 
 .farmer-profile-pic {
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #4CAF50;
+  border: 4px solid #4CAF50;
 }
 
-.profile-details {
-  flex: 2;
-}
-
-/* Form Styles */
-.form-group {
-  margin-bottom: 1.2rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color:#27ae60
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* Display Mode Styles */
-.farmer-name {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-.info-icon {
-  margin-right: 1rem;
-  font-size: 1.2rem;
-}
-
-.info-text {
-  color: #555;
-}
-
-/* Button Styles */
-button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.edit-btn {
-  background:#ffffff;
-  color:#27ae60;
-}
-
-.edit-btn:hover {
-  background-color:#34495e;
-  color:#ffffff;
-}
-.edit-btn-overview{
-  background-color: #27ae60;
-  color: #ffffff;
-}
-.edit-btn-overview:hover{
-  background-color:darkgreen;
-}
-
-.save-btn {
-  background: #FFC107; /* Yellow */
-  color: #333;
-}
-
-.save-btn:hover {
-  background:#ffffff;
-}
-
-.change-photo-btn {
+.change-photo-btn-profile {
   display: inline-block;
   padding: 0.6rem 1.2rem;
   background: #2196F3;
   color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   text-align: center;
   margin-top: 1rem;
   transition: background 0.3s;
 }
 
-.change-photo-btn:hover {
+.change-photo-btn-profile:hover {
   background: #0b7dda;
 }
 
-/* Responsive Design */
+/* Details Section */
+.profile-details {
+  flex: 2;
+}
+
+/* Form Styles */
+.form-group-profile {
+  margin-bottom: 1.2rem;
+}
+
+.form-group-profile label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group-profile input,
+.form-group-profile textarea {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group-profile input:focus,
+.form-group-profile textarea:focus {
+  outline: none;
+  border-color: #27ae60;
+}
+
+.form-group-profile textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+/* Display Mode */
+.farmer-name {
+  font-size: 1.9rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1.2rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.info-icon {
+  margin-right: 0.8rem;
+  font-size: 1.2rem;
+}
+
+.info-text {
+  color: #444;
+}
+
+/* Buttons */
+.edit-btn-profile,
+.save-btn-profile {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn-profile {
+  background: #ffffff;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+
+.edit-btn-profile:hover {
+  background: #199e36;
+  color: #ffffff;
+}
+
+.save-btn-profile {
+  background: #FFC107;
+  color: #333;
+}
+
+.save-btn-profile:hover {
+  background: #e0a800;
+  color: #fff;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .profile-content {
     flex-direction: column;
   }
-  
+
   .profile-image-section {
     margin-bottom: 1.5rem;
   }
-  
+
   .farmer-name {
     font-size: 1.5rem;
   }
@@ -639,4 +512,32 @@ tr:nth-child(even) {
   .order-details {
     overflow-x: auto;
   }
+}
+
+/* Save Changes button */
+.profile-header button {
+  background-color: #28a745; /* Green */
+  color: #218838;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.profile-header button:hover {
+  background-color:  #28a745;/* Darker green */
+  transform: scale(1.05);
+}
+
+/* When editing mode button is "Edit Profile" (secondary style) */
+.profile-header button:first-of-type {
+  background-color: #f4f7f2; /* Blue */
+}
+
+.profile-header button:first-of-type:hover {
+  background-color: #8cf4be;
 }

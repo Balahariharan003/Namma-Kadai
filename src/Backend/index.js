@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import farmerAuthRoutes from "./routes/auth.js";
 import productRoutes from "./routes/productRoutes.js";
 import productOverviewRoutes from "./routes/productOverviewRoutes.js"; // ✅ new import
+import farmerProfileRoutes from "./routes/farmerProfileRoutes.js"
 import path from "path";
 import cors from "cors";
 
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/", farmerAuthRoutes);
+app.use("/api/farmers/profile", farmerProfileRoutes);
 app.use("/api/products", productRoutes);           // add/update/delete
 app.use("/api/products", productOverviewRoutes);   // overview only (GET /overview)
 

@@ -139,6 +139,10 @@ const FarmerAuthform = () => {
         if (!response.ok) {
           throw new Error(data.message || `Login failed with status ${response.status}`);
         }
+
+         // ✅ Save logged-in farmer’s mobile to localStorage
+        localStorage.setItem("farmerMobile", data.farmer.mobile);
+        
         console.log("✅ Signup successful:", data);
         setSuccessMessage("Login successful!");
         setTimeout(() => {
@@ -178,6 +182,9 @@ const FarmerAuthform = () => {
           }
           throw new Error(errorMessage);
         }
+
+        localStorage.setItem('farmerMobile', data.farmer.mobile);
+        console.log("✅ Signup successful:", data);
 
         setSuccessMessage("Farmer account created successfully! Login functionality will be available soon.");
         setTimeout(() => {

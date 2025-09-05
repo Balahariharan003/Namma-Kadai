@@ -1,0 +1,176 @@
+/* FarmerProfile.css */
+/* ================= Farmer Profile Specific ================= */
+.farmer-profile-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.farmer-profile-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: #27ae60; /* Green header */
+  color: white;
+}
+
+.profile-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.profile-content {
+  display: flex;
+  padding: 1.5rem;
+  gap: 2rem;
+}
+
+/* Image Section */
+.profile-image-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.farmer-profile-pic {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #4CAF50;
+}
+
+.change-photo-btn-profile {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background: #2196F3;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 1rem;
+  transition: background 0.3s;
+}
+
+.change-photo-btn-profile:hover {
+  background: #0b7dda;
+}
+
+/* Details Section */
+.profile-details {
+  flex: 2;
+}
+
+/* Form Styles */
+.form-group-profile {
+  margin-bottom: 1.2rem;
+}
+
+.form-group-profile label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group-profile input,
+.form-group-profile textarea {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group-profile input:focus,
+.form-group-profile textarea:focus {
+  outline: none;
+  border-color: #27ae60;
+}
+
+.form-group-profile textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+/* Display Mode */
+.farmer-name {
+  font-size: 1.9rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1.2rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.info-icon {
+  margin-right: 0.8rem;
+  font-size: 1.2rem;
+}
+
+.info-text {
+  color: #444;
+}
+
+/* Buttons */
+.edit-btn-profile,
+.save-btn-profile {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn-profile {
+  background: #ffffff;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+
+.edit-btn-profile:hover {
+  background: #27ae60;
+  color: #ffffff;
+}
+
+.save-btn-profile {
+  background: #FFC107;
+  color: #333;
+}
+
+.save-btn-profile:hover {
+  background: #e0a800;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+  }
+
+  .profile-image-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .farmer-name {
+    font-size: 1.5rem;
+  }
+}

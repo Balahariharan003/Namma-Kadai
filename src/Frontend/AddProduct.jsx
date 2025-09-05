@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './css/AddProduct.css';
 
-const AddProduct = ({ productToEdit, onCancel, isEditMode }) => {
+const AddProduct = () => {
   const [productData, setProductData] = useState({
     name: '',
     price: '',
     inStock: '',
     preview: '',
     file: null, // actual file for upload
-
-    
   });
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
@@ -17,27 +15,6 @@ const AddProduct = ({ productToEdit, onCancel, isEditMode }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const API_BASE_URL = 'http://localhost:8000/api/products';
-
-  useEffect(() => {
-    if (productToEdit) {
-      setProductData({
-        name: productToEdit.name,
-        price: productToEdit.price,
-        inStock: productToEdit.inStock,
-        preview: productToEdit.imageUrl || '',
-        file: null,
-      });
-      setShowForm(true);
-    } else {
-      setProductData({
-        name: '',
-        price: '',
-        inStock: '',
-        preview: '',
-        file: null,
-      });
-    }
-  }, [productToEdit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -68,56 +45,52 @@ const AddProduct = ({ productToEdit, onCancel, isEditMode }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;    
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;    
 
-    setIsSubmitting(true);
-    setErrors({});
-    setSuccessMessage('');
+  setIsSubmitting(true);
+  setErrors({});
+  setSuccessMessage('');
 
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('productName', productData.name);
-      formDataToSend.append('rate', productData.price);
-      formDataToSend.append('kg', productData.inStock);
-      if (productData.file) formDataToSend.append('photo', productData.file);
+  try {
+    const formDataToSend = new FormData();
+    formDataToSend.append('productName', productData.name);
+    formDataToSend.append('rate', productData.price);
+    formDataToSend.append('kg', productData.inStock);
+    if (productData.file) formDataToSend.append('photo', productData.file);
 
-      const response = await fetch(`${API_BASE_URL}/add`, {
-        method: 'POST',
-        body: formDataToSend,
-      });
+    const response = await fetch(`${API_BASE_URL}/add`, {   // ✅ FIXED
+      method: 'POST',
+      body: formDataToSend,
+    });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to add product');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to add product');
 
-      setSuccessMessage('✅ Product added successfully!');
-      setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
-      setShowForm(false);
-    } catch (err) {
-      console.error('Error adding product:', err);
-      setErrors({ api: err.message });
-    } finally {
-      setIsSubmitting(false);
-    }
-    
-  };
+    setSuccessMessage('✅ Product added successfully!');
+    setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
+    setShowForm(false);
+  } catch (err) {
+    console.error('Error adding product:', err);
+    setErrors({ api: err.message });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleCancel = () => {
-    if (isEditMode) {
-      onCancel?.();
-    } else {
-      setShowForm(false);
-      setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
-    }
+    setShowForm(false);
+    setProductData({ name: '', price: '', inStock: '', preview: '', file: null });
   };
 
-  if (isEditMode || showForm) {
+  if (showForm) {
     return (
-      <div className={`add-product-container ${isEditMode ? 'edit-mode' : ''}`}>
+      <div className="add-product-container">
         <div className="add-product-form-container">
           <form className="add-product-form" onSubmit={handleSubmit}>
-            <h2>{isEditMode ? 'Edit Product' : 'Add New Product'}</h2>
+            <h2>Add New Product</h2>
 
             {errors.api && <div className="alert alert-error">{errors.api}</div>}
             {successMessage && <div className="alert alert-success">{successMessage}</div>}
@@ -183,7 +156,7 @@ const AddProduct = ({ productToEdit, onCancel, isEditMode }) => {
                 Cancel
               </button>
               <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Product' : 'Add Product')}
+                {isSubmitting ? 'Saving...' : 'Add Product'}
               </button>
             </div>
           </form>

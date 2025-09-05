@@ -1,49 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import "./css/Farmerdash.css";
 
-const FarmerProfile = ({ farmer, onUpdateProfile }) => {
+const FarmerProfile = () => {
+  const [farmer, setFarmer] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState(() => {
-    return farmer || {
-      name: 'Ravi Kumar',
-      mobile: '9876543210',
-      email: '', 
-      address: '123 Green Farm Road',
-      city: 'Coimbatore',
-      state: 'Tamil Nadu',
-      pincode: '641001',
-      profileImage: defaultProfile,
-    };
-  });
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
-    if (farmer) {
-      setProfileData(farmer);
-    }
-  }, [farmer]);
+    const fetchProfile = async () => {
+      const mobile = localStorage.getItem("farmerMobile");
+      if (!mobile) return;
+
+      try {
+        const res = await fetch(`http://localhost:8000/api/farmers/profile/${mobile}`);
+        const data = await res.json();
+        setFarmer(data);
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (!farmer) return <p>Loading profile...</p>;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
-    setIsEditing(false);
-    if (onUpdateProfile) {
-      onUpdateProfile(profileData);
-    }
+    setFarmer((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    setImageFile(file);
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData((prev) => ({
-          ...prev,
-          profileImage: reader.result,
-        }));
-      };
+      reader.onloadend = () => setFarmer((prev) => ({ ...prev, profilePhoto: reader.result }));
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    const mobile = farmer.mobile;
+    const formData = new FormData();
+    Object.keys(farmer).forEach((key) => {
+      if (key !== "profilePhoto") formData.append(key, farmer[key]);
+    });
+    if (imageFile) formData.append("profilePhoto", imageFile);
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/farmers/profile/${mobile}`, {
+        method: "PUT",
+        body: formData,
+      });
+      const data = await res.json();
+      setFarmer(data);
+      setIsEditing(false);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Error updating profile:", err);
     }
   };
 
@@ -53,127 +67,52 @@ const FarmerProfile = ({ farmer, onUpdateProfile }) => {
         <div className="profile-header">
           <h2>Farmer Profile</h2>
           {isEditing ? (
-            <button className="save-btn" onClick={handleSave}>
-              Save Changes
-            </button>
+            <button onClick={handleSave}>Save Changes</button>
           ) : (
-            <button className="edit-btn" onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </button>
+            <button onClick={() => setIsEditing(true)}>Edit Profile</button>
           )}
         </div>
 
         <div className="profile-content">
           <div className="profile-image-section">
             <img
-              src={profileData.profileImage}
-              alt="Farmer Profile"
+              src={farmer.profilePhoto || "/default-avatar.png"}
+              alt="Profile"
               className="farmer-profile-pic"
             />
             {isEditing && (
               <>
-                <input
-                  type="file"
-                  id="profileImageInput"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleImageChange}
-                />
-                <label htmlFor="profileImageInput" className="change-photo-btn">
-                  Change Photo
-                </label>
+                <input type="file" style={{ display: "none" }} id="profileImageInput" onChange={handleImageChange} />
+                <label htmlFor="profileImageInput">Change Photo</label>
               </>
             )}
           </div>
 
           <div className="profile-details">
-            {isEditing ? (
-              <>
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={profileData.name}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Mobile Number</label>
-                  <input
-                    type="tel"
-                    name="mobile"
-                    value={profileData.mobile}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                {/* Add email field in edit mode */}
-                <div className="form-group">
-                  <label>Email (Optional)</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={profileData.email || ''}
-                    onChange={handleInputChange}
-                    placeholder="example@email.com"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Address</label>
-                  <textarea
-                    name="address"
-                    value={profileData.address}
-                    onChange={handleInputChange}
-                    rows="3"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={profileData.city}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Pincode</label>
-                  <input
-                    type="text"
-                    name="pincode"
-                    value={profileData.pincode}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="farmer-name">{profileData.name}</h3>
-                <div className="info-item">
-                  <span className="info-icon">📞</span>
-                  <span className="info-text">{profileData.mobile}</span>
-                </div>
-                {/* Conditionally render email if it exists */}
-                {profileData.email && (
-                  <div className="info-item">
-                    <span className="info-icon">✉️</span>
-                    <span className="info-text">{profileData.email}</span>
-                  </div>
+            {["name", "email", "address", "city", "pincode"].map((field) => (
+              <div key={field} className="form-group-profile">
+                <label>
+                  {field === "email" && "✉ "}
+                  {field === "address" && "📍 "}
+                  {field === "city" && "🏙 "}
+                  {field === "pincode" && "📮 "}
+                  {field.charAt(0).toUpperCase() + field.slice(1)}
+                </label>
+                {isEditing ? (
+                  field === "address" ? (
+                    <textarea name={field} value={farmer[field]} onChange={handleInputChange} rows="3" />
+                  ) : (
+                    <input type="text" name={field} value={farmer[field]} onChange={handleInputChange} />
+                  )
+                ) : (
+                  <p>{farmer[field]}</p>
                 )}
-                <div className="info-item">
-                  <span className="info-icon">📍</span>
-                  <span className="info-text">{profileData.address}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-icon">🏙️</span>
-                  <span className="info-text">{profileData.city}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-icon">📮</span>
-                  <span className="info-text">{profileData.pincode}</span>
-                </div>
-              </>
-            )}
+              </div>
+            ))}
+            <div className="form-group-profile">
+              <label>📞 Mobile</label>
+              <p>{farmer.mobile}</p>
+            </div>
           </div>
         </div>
       </div>
