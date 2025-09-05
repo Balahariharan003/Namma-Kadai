@@ -72,16 +72,16 @@
   font-size: 1rem;
   font-weight: 600;
   color: #2d3748;
-  display:flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .input-icon {
   color: #718096;
-  font-size: 1.0rem;
+  font-size: 1rem;
   position: relative;
-  top: 2px; 
+  top: 2px;
   padding-right: 3px;
   display: inline-block;
 }
@@ -110,6 +110,15 @@
   resize: vertical;
 }
 
+/* Readonly state field */
+.form-group input[readonly],
+.form-group input:disabled {
+  background-color: #edf2f7;
+  color: #4a5568;
+  cursor: not-allowed;
+}
+
+/* Password input */
 .password-input {
   position: relative;
 }
@@ -131,7 +140,7 @@
   padding: 0.25rem;
 }
 
-.submit-btn-farmer{
+.submit-btn-farmer {
   width: 100%;
   padding: 1.1rem;
   font-size: 1.1rem;
@@ -179,7 +188,7 @@
   color: #718096;
 }
 
-.toggle-form-btn-farmer{
+.toggle-form-btn-farmer {
   background: none;
   border: none;
   color: #38a169;
@@ -312,8 +321,37 @@ textarea:focus-visible {
     width: 100px;
     height: 100px;
   }
-  
+
   .profile-placeholder span {
     font-size: 0.7rem;
   }
+}
+
+/* Location Button */
+.location-btn {
+  padding: 0.9rem 1.4rem;
+  background-color: #3182ce;   /* blue */
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.location-btn:hover {
+  background-color: #2b6cb0;   /* darker blue */
+}
+
+.location-btn:active {
+  transform: scale(0.97);
+}
+
+.location-btn:disabled {
+  background-color: #a0aec0;   /* grey */
+  cursor: not-allowed;
 }

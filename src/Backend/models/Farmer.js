@@ -47,7 +47,7 @@ const farmerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  pincode: {
+    pincode: {
     type: String,
     required: true,
     validate: {
@@ -56,6 +56,18 @@ const farmerSchema = new mongoose.Schema({
       },
       message: props => `${props.value} is not a valid pincode!`
     }
+  },
+  latitude: {
+    type: Number,
+    required: true,
+    min: -90,
+    max: 90
+  },
+  longitude: {
+    type: Number,
+    required: true,
+    min: -180,
+    max: 180
   },
   profilePhoto: {
     type: String,
