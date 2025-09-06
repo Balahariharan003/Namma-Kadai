@@ -18,13 +18,15 @@ const Cart = () => {
   }, [cart]);
 
   const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
+    setCart(cart.filter(item => item._id !== productId && item.id !== productId));
   };
 
   const updateQuantity = (productId, newQuantity) => {
     if (newQuantity < 1) return;
     setCart(cart.map(item =>
-      item.id === productId ? { ...item, quantity: newQuantity } : item
+      (item._id === productId || item.id === productId)
+        ? { ...item, quantity: newQuantity }
+        : item
     ));
   };
 
@@ -41,7 +43,10 @@ const Cart = () => {
       {cart.length === 0 ? (
         <div className="empty-cart">
           <p>Your cart is empty</p>
-          <button className="continue-shopping" onClick={() => navigate('/customer/dashboard')}>
+          <button
+            className="continue-shopping"
+            onClick={() => navigate('/customer/dashboard')}
+          >
             Continue Shopping
           </button>
         </div>
@@ -49,21 +54,29 @@ const Cart = () => {
         <>
           <div className="cart-items">
             {cart.map(item => (
-              <div key={item.id} className="cart-item">
-                <img src={item.image} alt={item.name} className="cart-item-image" />
+              <div key={item._id || item.id} className="cart-item">
+                <img
+                  src={
+                    item.imageUrl
+                      ? `http://localhost:8000${item.imageUrl}`
+                      : item.image || 'https://via.placeholder.com/100x100?text=No+Image'
+                  }
+                  alt={item.name}
+                  className="cart-item-image"
+                />
                 <div className="cart-item-details">
                   <h3>{item.name}</h3>
-                  <p>By {item.farmer}</p>
+                  <p>By {item.farmer?.name || item.farmer || 'Unknown'}</p>
                   <p>₹{item.price.toFixed(2)}</p>
                 </div>
                 <div className="quantity-control-cart">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 0.5)}>-</button>
+                  <button onClick={() => updateQuantity(item._id || item.id, item.quantity - 0.5)}>-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 0.5)}>+</button>
+                  <button onClick={() => updateQuantity(item._id || item.id, item.quantity + 0.5)}>+</button>
                 </div>
                 <button
                   className="remove-item-cart"
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => removeFromCart(item._id || item.id)}
                 >
                   <FaTrash />
                 </button>

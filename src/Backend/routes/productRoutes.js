@@ -41,7 +41,7 @@ router.post("/add", upload.single("photo"), async (req, res) => {
 // GET /api/products → Get all products (for admin or global view)
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find(); // ✅ fixed (removed "farmer" bug)
+    const products = await Product.find().populate("farmer"); // ✅ fixed (removed "farmer" bug)
     res.json(products);
   } catch (err) {
     console.error("❌ Error fetching products:", err);
@@ -92,7 +92,7 @@ router.put("/update/:id", upload.single("photo"), async (req, res) => {
       req.params.id,
       updatedData,
       { new: true }
-    );
+    ).populate("farmer");
 
     if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
 

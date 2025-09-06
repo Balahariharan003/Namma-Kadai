@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FaCheckCircle, FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { FaCheckCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import './css/Customer.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -14,7 +13,7 @@ const Checkout = () => {
     payment: 'credit'
   });
 
-  // Get cart from localStorage and location state
+  // Get cart from localStorage
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem('cart');
     return savedCart ? JSON.parse(savedCart) : [];
@@ -26,23 +25,6 @@ const Checkout = () => {
       ...formData,
       [name]: value
     });
-  };
-
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    const updatedCart = cart.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    );
-    
-    setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-  };
-
-  const removeItem = (id) => {
-    const updatedCart = cart.filter(item => item.id !== id);
-    setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
   const handleSubmit = (e) => {
@@ -80,7 +62,12 @@ const Checkout = () => {
       {cart.length === 0 ? (
         <div className="empty-cart">
           <p>Your cart is empty</p>
-          <button className="continue-shopping" onClick={() => navigate('/customer/dashboard')}>Continue Shopping</button>
+          <button 
+            className="continue-shopping" 
+            onClick={() => navigate('/customer/dashboard')}
+          >
+            Continue Shopping
+          </button>
         </div>
       ) : (
         <div className="checkout-content">
@@ -142,26 +129,22 @@ const Checkout = () => {
             <h2>Order Summary</h2>
             <div className="order-items">
               {cart.map(item => (
-                <div key={item.id} className="order-item">
-                  <img src={item.image} alt={item.name} onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/100?text=Product';
-                  }} />
+                <div key={item._id || item.id} className="order-item">
+                  <img 
+                    src={
+                      item.imageUrl
+                        ? `http://localhost:8000${item.imageUrl}`
+                        : item.image || 'https://via.placeholder.com/100?text=Product'
+                    } 
+                    alt={item.name} 
+                  />
                   <div className="item-details">
                     <h4>{item.name}</h4>
                     <p>₹{item.price.toFixed(2)} / Per kg</p>
-                    <div className="quantity-control-checkout">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 0.5)} >-</button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 0.5)}>+</button>
-                    </div>
+                    <p>Quantity: {item.quantity}</p>
                   </div>
                   <div className="item-total-checkout">
                     <span>₹{(item.price * item.quantity).toFixed(2)}</span>
-                    <button 
-                      className="remove-item-checkout"
-                      onClick={() => removeItem(item.id)}>
-                      <FaTrash />
-                    </button>
                   </div>
                 </div>
               ))}
