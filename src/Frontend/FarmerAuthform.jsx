@@ -10,7 +10,8 @@ import {
   FaLock,
   FaCity,
   FaHashtag,
-  FaImage
+  FaImage,
+  FaMapMarkedAlt
 } from 'react-icons/fa';
 import './css/FarmerAuth.css';
 
@@ -37,16 +38,8 @@ const FarmerAuthform = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const API_BASE_URL = 'http://localhost:8000';
+  const LOCATIONIQ_KEY = 'pk.760ab12c79b92431292bea43c3ad5325'; // Replace with your LocationIQ key
 
-  // ✅ Clean address helper (remove numbers & special chars)
-  const cleanAddress = (address) => {
-    return address
-      .replace(/[^a-zA-Z\s,]/g, '') // keep only words & commas
-      .replace(/\s+/g, ' ') // remove extra spaces
-      .trim();
-  };
-
-  // ✅ field validation
   const validateField = (name, value) => {
     switch (name) {
       case 'mobile':
@@ -73,81 +66,63 @@ const FarmerAuthform = () => {
     return '';
   };
 
-  // ✅ handle input + auto-fill state when city entered
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
-
-    if (name === 'city' && value.trim().length > 2) {
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(
-            value
-          )}&format=json&addressdetails=1`
-        );
-        const data = await res.json();
-        if (data.length > 0 && data[0].address && data[0].address.state) {
-          setFormData((prev) => ({ ...prev, state: data[0].address.state }));
-        }
-      } catch (err) {
-        console.error('State fetch failed:', err);
-      }
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const handleFileChange = (e) => {
-    setProfilePhoto(e.target.files[0]);
-  };
+  const handleFileChange = (e) => setProfilePhoto(e.target.files[0]);
 
-  // ✅ fetch Lat/Lon from manual address (Nominatim with clean address)
-  const fetchLatLonFromAddress = async () => {
-    if (!formData.address || !formData.city || !formData.state || !formData.pincode) {
-      alert("Please enter complete address (address, city, state, pincode)");
+  // ✅ Fetch current location & validate pincode
+  const useCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
       return;
     }
 
-    // Clean address before search
-    const cleanedAddress = cleanAddress(
-      `${formData.address}, ${formData.city}, ${formData.state}, ${formData.pincode}, India`
-    );
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
 
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(
-          cleanedAddress
-        )}`
-      );
-      const data = await response.json();
+        try {
+          const res = await fetch(
+            `https://us1.locationiq.com/v1/reverse.php?key=${LOCATIONIQ_KEY}&lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          const detectedPincode = data.address.postcode || '';
 
-      if (data && data.length > 0) {
-        const { lat, lon, display_name, address } = data[0];
+          if (formData.pincode !== detectedPincode) {
+            alert(
+              `❌ Pincode mismatch!\nEntered: ${formData.pincode}\nDetected: ${detectedPincode}`
+            );
+            setErrors((prev) => ({
+              ...prev,
+              pincode: `Pincode mismatch with current location (${detectedPincode})`
+            }));
+            return;
+          }
 
-        // Update only latitude and longitude, leave city intact
-        setFormData((prev) => ({
-          ...prev,
-          latitude: parseFloat(lat).toFixed(6),
-          longitude: parseFloat(lon).toFixed(6),
-          // Optional: auto-fill state only if empty
-          state: prev.state || address.state || ''
-        }));
-
-        alert(`Location found: ${display_name}`);
-      } else {
-        alert("No location found for the entered address");
+          setFormData((prev) => ({
+            ...prev,
+            latitude: parseFloat(latitude).toFixed(6),
+            longitude: parseFloat(longitude).toFixed(6)
+          }));
+          alert(`✅ Location verified! Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`);
+          setErrors((prev) => ({ ...prev, pincode: '' }));
+        } catch (error) {
+          console.error(error);
+          alert('Error fetching pincode from LocationIQ');
+        }
+      },
+      (error) => {
+        console.error(error);
+        alert('Unable to get your current location');
       }
-    } catch (err) {
-      console.error("Error fetching from Nominatim:", err);
-      alert("Error fetching location");
-    }
+    );
   };
 
-
-  // ✅ form validation
-  const validateForm = () => {y
+  const validateForm = () => {
     const newErrors = {};
     let isValid = true;
 
@@ -173,18 +148,22 @@ const FarmerAuthform = () => {
         }
       });
       if (formData.password && formData.confirmPassword) {
-        const confirmError = validateField(
-          'confirmPassword',
-          formData.confirmPassword
-        );
+        const confirmError = validateField('confirmPassword', formData.confirmPassword);
         if (confirmError) {
           newErrors.confirmPassword = confirmError;
           isValid = false;
         }
       }
-
       if (!profilePhoto) {
         newErrors.profilePhoto = 'Profile photo is required';
+        isValid = false;
+      }
+      if (!formData.latitude || !formData.longitude) {
+        newErrors.latitude = 'Current location is required';
+        newErrors.longitude = 'Current location is required';
+        isValid = false;
+      }
+      if (errors.pincode) {
         isValid = false;
       }
     }
@@ -193,7 +172,6 @@ const FarmerAuthform = () => {
     return isValid;
   };
 
-  // ✅ handle login / signup
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -215,15 +193,11 @@ const FarmerAuthform = () => {
         let data;
         try {
           data = await response.json();
-        } catch (err) {
+        } catch {
           throw new Error('Invalid JSON response from server');
         }
 
-        if (!response.ok) {
-          throw new Error(
-            data.message || `Login failed with status ${response.status}`
-          );
-        }
+        if (!response.ok) throw new Error(data.message || 'Login failed');
 
         localStorage.setItem('farmerMobile', data.farmer.mobile);
         localStorage.setItem('farmerId', data.farmer._id);
@@ -234,20 +208,22 @@ const FarmerAuthform = () => {
           navigate('/farmer/dashboard');
         }, 2000);
       } else {
+        if (!formData.latitude || !formData.longitude || errors.pincode) {
+          alert('Please verify your current location and pincode before registering.');
+          setIsSubmitting(false);
+          return;
+        }
+
         const formDataToSend = new FormData();
         Object.keys(formData).forEach((key) => {
-          if (key === "latitude" || key === "longitude") {
-            if (formData[key]) {
-              formDataToSend.append(key, parseFloat(formData[key]));
-            }
+          if (key === 'latitude' || key === 'longitude') {
+            if (formData[key]) formDataToSend.append(key, parseFloat(formData[key]));
           } else {
             formDataToSend.append(key, formData[key]);
           }
         });
 
-        if (profilePhoto) {
-          formDataToSend.append('profilePhoto', profilePhoto);
-        }
+        if (profilePhoto) formDataToSend.append('profilePhoto', profilePhoto);
 
         const response = await fetch(`${API_BASE_URL}/signup`, {
           method: 'POST',
@@ -255,20 +231,15 @@ const FarmerAuthform = () => {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
           let errorMessage = data.message || 'Registration failed';
-          if (Array.isArray(data.errors)) {
-            errorMessage = data.errors.join(', ');
-          }
+          if (Array.isArray(data.errors)) errorMessage = data.errors.join(', ');
           throw new Error(errorMessage);
         }
 
         localStorage.setItem('farmerMobile', data.farmer.mobile);
 
-        setSuccessMessage(
-          'Farmer account created successfully! Login functionality will be available soon.'
-        );
+        setSuccessMessage('Farmer account created successfully!');
         setTimeout(() => {
           setIsLogin(true);
           setSuccessMessage('');
@@ -289,15 +260,11 @@ const FarmerAuthform = () => {
         }, 3000);
       }
     } catch (error) {
-      setErrors({
-        api: error.message || 'An error occurred. Please try again.'
-      });
+      setErrors({ api: error.message || 'An error occurred. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   return (
     <div className="auth-container">
@@ -306,9 +273,7 @@ const FarmerAuthform = () => {
         <h2>{isLogin ? 'Farmer Login' : 'Farmer Registration'}</h2>
       </div>
 
-      {successMessage && (
-        <div className="alert alert-success">{successMessage}</div>
-      )}
+      {successMessage && <div className="alert alert-success">{successMessage}</div>}
       {errors.api && <div className="alert alert-error">{errors.api}</div>}
 
       <form onSubmit={handleSubmit} className="auth-form">
@@ -316,10 +281,7 @@ const FarmerAuthform = () => {
           <>
             {/* Name */}
             <div className={`form-group ${errors.name ? 'error' : ''}`}>
-              <label htmlFor="name">
-                <FaUser className="input-icon" />
-                Full Name
-              </label>
+              <label htmlFor="name"><FaUser className="input-icon" />Full Name</label>
               <input
                 type="text"
                 id="name"
@@ -328,17 +290,12 @@ const FarmerAuthform = () => {
                 onChange={handleChange}
                 placeholder="Enter your full name"
               />
-              {errors.name && (
-                <span className="error-message">{errors.name}</span>
-              )}
+              {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
 
             {/* Email */}
             <div className="form-group">
-              <label htmlFor="email">
-                <FaEnvelope className="input-icon" />
-                Email (Optional)
-              </label>
+              <label htmlFor="email"><FaEnvelope className="input-icon" />Email (Optional)</label>
               <input
                 type="email"
                 id="email"
@@ -347,19 +304,12 @@ const FarmerAuthform = () => {
                 onChange={handleChange}
                 placeholder="example@email.com"
               />
-              {errors.email && (
-                <span className="error-message">{errors.email}</span>
-              )}
+              {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
             {/* Profile Photo */}
-            <div
-              className={`form-group ${errors.profilePhoto ? 'error' : ''}`}
-            >
-              <label htmlFor="profilePhoto">
-                <FaImage className="input-icon" />
-                Profile Photo
-              </label>
+            <div className={`form-group ${errors.profilePhoto ? 'error' : ''}`}>
+              <label htmlFor="profilePhoto"><FaImage className="input-icon" />Profile Photo</label>
               <input
                 type="file"
                 id="profilePhoto"
@@ -367,37 +317,27 @@ const FarmerAuthform = () => {
                 accept="image/*"
                 onChange={handleFileChange}
               />
-              {errors.profilePhoto && (
-                <span className="error-message">{errors.profilePhoto}</span>
-              )}
+              {errors.profilePhoto && <span className="error-message">{errors.profilePhoto}</span>}
             </div>
 
             {/* Address */}
             <div className={`form-group ${errors.address ? 'error' : ''}`}>
-              <label htmlFor="address">
-                <FaMapMarkerAlt className="input-icon" />
-                Address
-              </label>
+              <label htmlFor="address"><FaMapMarkerAlt className="input-icon" />Address</label>
               <textarea
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="Only type area, e.g., Solangapalayam, Erode"
+                placeholder="Type landmark/address"
                 rows="2"
               />
-              {errors.address && (
-                <span className="error-message">{errors.address}</span>
-              )}
+              {errors.address && <span className="error-message">{errors.address}</span>}
             </div>
 
             {/* City, State, Pincode */}
             <div className="address-details">
               <div className={`form-group ${errors.city ? 'error' : ''}`}>
-                <label htmlFor="city">
-                  <FaCity className="input-icon" />
-                  City
-                </label>
+                <label htmlFor="city"><FaCity className="input-icon" />City</label>
                 <input
                   type="text"
                   id="city"
@@ -406,34 +346,24 @@ const FarmerAuthform = () => {
                   onChange={handleChange}
                   placeholder="E.g., Erode"
                 />
-                {errors.city && (
-                  <span className="error-message">{errors.city}</span>
-                )}
+                {errors.city && <span className="error-message">{errors.city}</span>}
               </div>
 
               <div className={`form-group ${errors.state ? 'error' : ''}`}>
-                <label htmlFor="state">
-                  <FaMapMarkerAlt className="input-icon" />
-                  State
-                </label>
+                <label htmlFor="state"><FaMapMarkerAlt className="input-icon" />State</label>
                 <input
                   type="text"
                   id="state"
                   name="state"
                   value={formData.state}
-                  readOnly
-                  placeholder="Auto-filled from city"
+                  onChange={handleChange}
+                  placeholder="Enter state manually"
                 />
-                {errors.state && (
-                  <span className="error-message">{errors.state}</span>
-                )}
+                {errors.state && <span className="error-message">{errors.state}</span>}
               </div>
 
               <div className={`form-group ${errors.pincode ? 'error' : ''}`}>
-                <label htmlFor="pincode">
-                  <FaHashtag className="input-icon" />
-                  Pincode
-                </label>
+                <label htmlFor="pincode"><FaHashtag className="input-icon" />Pincode</label>
                 <input
                   type="text"
                   id="pincode"
@@ -443,62 +373,50 @@ const FarmerAuthform = () => {
                   placeholder="6-digit pincode"
                   maxLength="6"
                 />
-                {errors.pincode && (
-                  <span className="error-message">{errors.pincode}</span>
-                )}
+                {errors.pincode && <span className="error-message">{errors.pincode}</span>}
               </div>
             </div>
 
             {/* Latitude & Longitude */}
             <div className="location-group">
               <div className="form-group">
-                <label htmlFor="latitude">
-                  <FaMapMarkerAlt className="input-icon" />
-                  Latitude
-                </label>
+                <label htmlFor="latitude"><FaMapMarkedAlt className="input-icon" />Latitude</label>
                 <input
                   type="text"
                   id="latitude"
                   name="latitude"
                   value={formData.latitude}
                   readOnly
-                  placeholder="Click button to fetch from address"
+                  placeholder="Will be fetched from current location"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="longitude">
-                  <FaMapMarkerAlt className="input-icon" />
-                  Longitude
-                </label>
+                <label htmlFor="longitude"><FaMapMarkedAlt className="input-icon" />Longitude</label>
                 <input
                   type="text"
                   id="longitude"
                   name="longitude"
                   value={formData.longitude}
                   readOnly
-                  placeholder="Click button to fetch from address"
+                  placeholder="Will be fetched from current location"
                 />
               </div>
             </div>
 
-            {/* Fetch Location Button */}
             <button
               type="button"
               className="location-btn"
-              onClick={fetchLatLonFromAddress}
+              onClick={useCurrentLocation}
             >
-              📍 Get Location from Address
+              📍 Use My Current Location
             </button>
           </>
         )}
 
         {/* Mobile */}
         <div className={`form-group ${errors.mobile ? 'error' : ''}`}>
-          <label htmlFor="mobile">
-            <FaPhone className="input-icon" />
-            Mobile Number
-          </label>
+          <label htmlFor="mobile"><FaPhone className="input-icon" />Mobile Number</label>
           <input
             type="tel"
             id="mobile"
@@ -508,17 +426,12 @@ const FarmerAuthform = () => {
             placeholder="Enter 10-digit mobile number"
             maxLength="10"
           />
-          {errors.mobile && (
-            <span className="error-message">{errors.mobile}</span>
-          )}
+          {errors.mobile && <span className="error-message">{errors.mobile}</span>}
         </div>
 
         {/* Password */}
         <div className={`form-group ${errors.password ? 'error' : ''}`}>
-          <label htmlFor="password">
-            <FaLock className="input-icon" />
-            Password
-          </label>
+          <label htmlFor="password"><FaLock className="input-icon" />Password</label>
           <div className="password-input">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -531,25 +444,18 @@ const FarmerAuthform = () => {
             <button
               type="button"
               className="toggle-password"
-              onClick={togglePasswordVisibility}
+              onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-          {errors.password && (
-            <span className="error-message">{errors.password}</span>
-          )}
+          {errors.password && <span className="error-message">{errors.password}</span>}
         </div>
 
         {/* Confirm Password */}
         {!isLogin && (
-          <div
-            className={`form-group ${errors.confirmPassword ? 'error' : ''}`}
-          >
-            <label htmlFor="confirmPassword">
-              <FaLock className="input-icon" />
-              Confirm Password
-            </label>
+          <div className={`form-group ${errors.confirmPassword ? 'error' : ''}`}>
+            <label htmlFor="confirmPassword"><FaLock className="input-icon" />Confirm Password</label>
             <input
               type={showPassword ? 'text' : 'password'}
               id="confirmPassword"
@@ -558,24 +464,12 @@ const FarmerAuthform = () => {
               onChange={handleChange}
               placeholder="Confirm your password"
             />
-            {errors.confirmPassword && (
-              <span className="error-message">{errors.confirmPassword}</span>
-            )}
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
           </div>
         )}
 
-        <button
-          type="submit"
-          className="submit-btn-farmer"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <span className="spinner"></span>
-          ) : isLogin ? (
-            'Login'
-          ) : (
-            'Register'
-          )}
+        <button type="submit" className="submit-btn-farmer" disabled={isSubmitting}>
+          {isSubmitting ? <span className="spinner"></span> : isLogin ? 'Login' : 'Register'}
         </button>
       </form>
 

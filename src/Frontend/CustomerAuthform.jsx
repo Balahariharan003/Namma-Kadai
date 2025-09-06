@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaLock, FaCity, FaHashtag } from 'react-icons/fa';
+import {
+  FaEye,
+  FaEyeSlash,
+  FaUser,
+  FaPhone,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaLock,
+  FaCity,
+  FaHashtag,
+  FaMapMarkedAlt
+} from 'react-icons/fa';
 import './css/CustomerAuth.css';
 
 const CustomerAuthform = () => {
@@ -14,6 +25,8 @@ const CustomerAuthform = () => {
     city: '',
     state: '',
     pincode: '',
+    latitude: '',
+    longitude: '',
     password: '',
     confirmPassword: ''
   });
@@ -23,6 +36,7 @@ const CustomerAuthform = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const API_BASE_URL = 'http://localhost:8000/api';
+  const LOCATIONIQ_KEY = 'pk.760ab12c79b92431292bea43c3ad5325'; // Replace with your key
 
   const validateField = (name, value) => {
     switch (name) {
@@ -54,11 +68,55 @@ const CustomerAuthform = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
+
+  // ------------------- LOCATION FUNCTION -------------------
+  const useCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const res = await fetch(
+            `https://us1.locationiq.com/v1/reverse.php?key=${LOCATIONIQ_KEY}&lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          const detectedPincode = data.address.postcode || '';
+
+          if (formData.pincode && formData.pincode !== detectedPincode) {
+            alert(`❌ Pincode mismatch!\nEntered: ${formData.pincode}\nDetected: ${detectedPincode}`);
+            setErrors(prev => ({
+              ...prev,
+              pincode: `Pincode mismatch with current location (${detectedPincode})`
+            }));
+            return;
+          }
+
+          setFormData(prev => ({
+            ...prev,
+            latitude: parseFloat(latitude).toFixed(6),
+            longitude: parseFloat(longitude).toFixed(6)
+          }));
+          setErrors(prev => ({ ...prev, pincode: '' }));
+          alert(`✅ Location verified! Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`);
+        } catch (error) {
+          console.error(error);
+          alert('Error fetching pincode from LocationIQ');
+        }
+      },
+      (error) => {
+        console.error(error);
+        alert('Unable to get your current location');
+      }
+    );
+  };
+  // -----------------------------------------------------------
 
   const validateForm = () => {
     const newErrors = {};
@@ -94,6 +152,16 @@ const CustomerAuthform = () => {
           isValid = false;
         }
       }
+
+      if (!formData.latitude || !formData.longitude) {
+        newErrors.latitude = 'Current location is required';
+        newErrors.longitude = 'Current location is required';
+        isValid = false;
+      }
+
+      if (errors.pincode) {
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -110,10 +178,7 @@ const CustomerAuthform = () => {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mobile: formData.mobile,
-            password: formData.password,
-          }),
+          body: JSON.stringify({ mobile: formData.mobile, password: formData.password }),
         });
 
         const data = await response.json();
@@ -133,12 +198,14 @@ const CustomerAuthform = () => {
             city: formData.city,
             state: formData.state,
             pincode: formData.pincode,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
             password: formData.password,
           }),
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.message || data.errors || 'Registration failed');
+        if (!response.ok) throw new Error(data.message || 'Registration failed');
 
         setSuccessMessage('Customer account created successfully! Please login.');
         setTimeout(() => {
@@ -146,7 +213,7 @@ const CustomerAuthform = () => {
           setSuccessMessage('');
           setFormData({
             name: '', mobile: '', email: '', address: '', city: '',
-            state: '', pincode: '', password: '', confirmPassword: ''
+            state: '', pincode: '', latitude: '', longitude: '', password: '', confirmPassword: ''
           });
         }, 2000);
       }
@@ -156,8 +223,6 @@ const CustomerAuthform = () => {
       setIsSubmitting(false);
     }
   };
-
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   return (
     <div className="auth-container">
@@ -172,24 +237,28 @@ const CustomerAuthform = () => {
       <form onSubmit={handleSubmit} className="auth-form">
         {!isLogin && (
           <>
+            {/* Name */}
             <div className={`form-group ${errors.name ? 'error' : ''}`}>
               <label htmlFor="name"><FaUser className="input-icon" />Full Name</label>
               <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Enter your full name" />
               {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
 
+            {/* Email */}
             <div className="form-group">
               <label htmlFor="email"><FaEnvelope className="input-icon" />Email (Optional)</label>
               <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="example@email.com" />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
+            {/* Address */}
             <div className={`form-group ${errors.address ? 'error' : ''}`}>
               <label htmlFor="address"><FaMapMarkerAlt className="input-icon" />Address</label>
               <textarea id="address" name="address" value={formData.address} onChange={handleChange} placeholder="House No, Street, Area" rows="2" />
               {errors.address && <span className="error-message">{errors.address}</span>}
             </div>
 
+            {/* City, State, Pincode */}
             <div className="address-details">
               <div className={`form-group ${errors.city ? 'error' : ''}`}>
                 <label htmlFor="city"><FaCity className="input-icon" />City</label>
@@ -209,20 +278,40 @@ const CustomerAuthform = () => {
                 {errors.pincode && <span className="error-message">{errors.pincode}</span>}
               </div>
             </div>
+
+            {/* Latitude & Longitude */}
+            <div className="location-group">
+              <div className="form-group">
+                <label htmlFor="latitude"><FaMapMarkedAlt className="input-icon" />Latitude</label>
+                <input type="text" id="latitude" name="latitude" value={formData.latitude} readOnly placeholder="Will be fetched from current location" />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="longitude"><FaMapMarkedAlt className="input-icon" />Longitude</label>
+                <input type="text" id="longitude" name="longitude" value={formData.longitude} readOnly placeholder="Will be fetched from current location" />
+              </div>
+            </div>
+
+            {/* Use Current Location Button */}
+            <button type="button" className="location-btn" onClick={useCurrentLocation}>
+              📍 Use My Current Location
+            </button>
           </>
         )}
 
+        {/* Mobile */}
         <div className={`form-group ${errors.mobile ? 'error' : ''}`}>
           <label htmlFor="mobile"><FaPhone className="input-icon" />Mobile Number</label>
           <input type="tel" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Enter 10-digit mobile number" maxLength="10" />
           {errors.mobile && <span className="error-message">{errors.mobile}</span>}
         </div>
 
+        {/* Password */}
         <div className={`form-group ${errors.password ? 'error' : ''}`}>
           <label htmlFor="password"><FaLock className="input-icon" />Password</label>
           <div className="password-input">
             <input type={showPassword ? 'text' : 'password'} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" />
-            <button type="button" className="toggle-password" onClick={togglePasswordVisibility}>
+            <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>

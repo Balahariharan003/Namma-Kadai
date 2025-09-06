@@ -326,13 +326,11 @@ textarea:focus-visible {
     font-size: 0.7rem;
   }
 }
-
-/* Location Button */
 .location-btn {
-  padding: 0.9rem 1.4rem;
-  background-color: #3182ce;   /* blue */
+  padding: 0.5rem 1rem;           /* smaller padding */
+  background-color: #3182ce;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.9rem;              /* slightly smaller font */
   font-weight: 600;
   border: none;
   border-radius: 8px;
@@ -341,6 +339,11 @@ textarea:focus-visible {
   align-items: center;
   gap: 0.5rem;
   transition: background-color 0.2s ease, transform 0.1s ease;
+  width: auto;                   /* button width fits content */
+  white-space: nowrap;           /* no wrapping, keep in one line */
+  overflow: hidden;              /* prevent overflow */
+  text-overflow: ellipsis;       /* show '...' if text too long */
+  max-width: 220px;              /* optional max width */
 }
 
 .location-btn:hover {
