@@ -27,13 +27,44 @@ const Checkout = () => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const customer = JSON.parse(localStorage.getItem("user"));
+
+    const orderData = {
+      customerId: customer._id,
+      farmerId: cart[0]?.farmer?._id || cart[0]?.farmerId, // 👈 main farmer for this order
+      products: cart.map(item => ({
+        productId: item._id,
+        farmerId: item.farmer?._id || item.farmerId,   // ✅ required for backend
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      address: formData.address,
+      paymentMethod: formData.payment,
+      total: subtotal
+    };
+
+    console.log("Sending orderData:", orderData);
+
+    const res = await fetch("http://localhost:8000/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData)
+    });
+
+    if (!res.ok) throw new Error("Failed to place order");
+
     setOrderConfirmed(true);
-    // Clear cart from localStorage
-    localStorage.removeItem('cart');
+    localStorage.removeItem("cart");
     setCart([]);
-  };
+  } catch (err) {
+    alert("Error placing order: " + err.message);
+  }
+};
 
   // Calculate subtotal properly
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);

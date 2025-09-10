@@ -59,7 +59,7 @@ const CustomerHome = () => {
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
-      : [...cart, { ...product, quantity: 1 }];
+      : [...cart, { ...product, quantity: 1, farmerId: product.farmer?._id }]; // 👈 add farmerId
     setCart(updatedCart);
   };
 

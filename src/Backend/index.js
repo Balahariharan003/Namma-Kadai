@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import farmerAuthRoutes from "./routes/auth.js";
 import customerAuthRoutes from "./routes/customerAuth.js";
+import orderRoutes from "./routes/orderRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import productOverviewRoutes from "./routes/productOverviewRoutes.js"; // ✅ new import
 import farmerProfileRoutes from "./routes/farmerProfileRoutes.js";
@@ -31,6 +32,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/", farmerAuthRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/auth", customerAuthRoutes);
 app.use("/api/farmers/profile", farmerProfileRoutes);
 app.use("/api/customers/profile", customerProfileRoutes);

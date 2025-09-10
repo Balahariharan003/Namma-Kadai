@@ -2,12 +2,26 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  farmerId: { type: mongoose.Schema.Types.ObjectId, ref: "Farmer", required: true }, // 👈 main farmer for this order
+  customerId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User", 
+    required: true 
+  },
+  farmerId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User",   // ✅ farmers stored in User collection
+    required: true 
+  },
   products: [
     {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-      farmerId: { type: mongoose.Schema.Types.ObjectId, ref: "Farmer" }, // 👈 add farmer per product
+      productId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Product" 
+      },
+      farmerId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "User"   // ✅ also point to User
+      },
       name: String,
       quantity: Number,
       price: Number,
@@ -16,8 +30,15 @@ const orderSchema = new mongoose.Schema({
   address: String,
   paymentMethod: String,
   total: Number,
-  status: { type: String, enum: ["pending", "confirmed", "delivered"], default: "pending" },
-  createdAt: { type: Date, default: Date.now }
+  status: { 
+    type: String, 
+    enum: ["pending", "confirmed", "delivered"], 
+    default: "pending" 
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
 });
 
 export default mongoose.model("Order", orderSchema);
